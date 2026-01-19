@@ -1,9 +1,64 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+}
 
+enum AccountRole {
+  MASTER
+  MEMBER
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  cpf       String?  @unique
+  password  String
+
+  accounts  AccountUser[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id        String        @id @default(uuid())
+  name      String
+
+  users     AccountUser[]
+  wallets   Wallet[]
+
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model AccountUser {
+  id        String   @id @default(uuid())
+
+  userId    String
+  accountId String
+
+  role      AccountRole @default(MEMBER)
+
+  user      User    @relation(fields: [userId], references: [id])
+  account   Account @relation(fields: [accountId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, accountId])
+}
+
+model Wallet {
+  id        String   @id @default(uuid())
+  name      String
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
